@@ -2,7 +2,7 @@
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV HOSTNAME=Lightingplays
+ENV HOSTNAME=mehraz
 ENV PORT=7860
 
 # ---- Base packages ----
@@ -20,9 +20,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cloud-image-utils \
     nodejs \
     npm \
-    iproute2 \
-    iptables \
     procps \
+    neofetch \
     tini \
     && rm -rf /var/lib/apt/lists/*
 
@@ -37,19 +36,12 @@ RUN curl -fsSL https://code-server.dev/install.sh | sh
 # ---- Install Claude Code CLI ----
 RUN npm install -g @anthropic-ai/claude-code
 
-# ---- Install Tailscale ----
-RUN curl -fsSL https://tailscale.com/install.sh | sh
-
 # ---- Workspace ----
 WORKDIR /workspace
 
-EXPOSE $PORT
+EXPOSE 7860
 
 # ---- Railway-ready CMD ----
 USER mehraz
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD sh -c "\
-    mkdir -p /workspace/tailscale && \
-    tailscaled --state=/workspace/tailscale/tailscaled.state --tun=userspace-networking & \
-    tailscale up --authkey=$TAILSCALE_AUTHKEY --hostname=rail-container --accept-routes --accept-dns & \
-    exec code-server --bind-addr 0.0.0.0:$PORT --auth password"
+CMD exec code-server --bind-addr 0.0.0.0:7860 --auth password
