@@ -4,7 +4,6 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV HOSTNAME=Lightingplays
 ENV PORT=7860
-ENV TAILSCALE_AUTHKEY=tskey-auth-kwAXwP4tPc11CNTRL-DBiGx22nELGFMJc9tRtzKGVgXqvpQZFg
 
 # ---- Base packages ----
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -13,7 +12,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     git \
     sudo \
-    docker.io \
     htop \
     btop \
     neovim \
@@ -24,6 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     npm \
     iproute2 \
     iptables \
+    procps \
+    tini \
     && rm -rf /var/lib/apt/lists/*
 
 # ---- Create user ----
@@ -43,12 +43,13 @@ RUN curl -fsSL https://tailscale.com/install.sh | sh
 # ---- Workspace ----
 WORKDIR /workspace
 
-EXPOSE 7860
+EXPOSE $PORT
 
 # ---- Railway-ready CMD ----
 USER mehraz
+ENTRYPOINT ["/usr/bin/tini", "--"]
 CMD sh -c "\
     mkdir -p /workspace/tailscale && \
     tailscaled --state=/workspace/tailscale/tailscaled.state --tun=userspace-networking & \
     tailscale up --authkey=$TAILSCALE_AUTHKEY --hostname=rail-container --accept-routes --accept-dns & \
-    code-server --bind-addr 0.0.0.0:$PORT --auth password"
+    exec code-server --bind-addr 0.0.0.0:$PORT --auth password"
