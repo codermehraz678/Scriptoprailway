@@ -1,4 +1,3 @@
-# Base image
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -21,7 +20,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nodejs \
     npm \
     procps \
-    neofetch \
     tini \
     && rm -rf /var/lib/apt/lists/*
 
@@ -39,9 +37,9 @@ RUN npm install -g @anthropic-ai/claude-code
 # ---- Workspace ----
 WORKDIR /workspace
 
-EXPOSE 7860
+EXPOSE $PORT
 
 # ---- Railway-ready CMD ----
 USER mehraz
 ENTRYPOINT ["/usr/bin/tini", "--"]
-CMD exec code-server --bind-addr 0.0.0.0:7860 --auth password
+CMD exec code-server --bind-addr 0.0.0.0:$PORT --auth password
